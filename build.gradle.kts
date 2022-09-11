@@ -17,7 +17,7 @@ repositories {
 }
 
 group = "uk.co.lucystevens"
-version = "0.0.2"
+version = "0.0.1"
 
 sourceSets {
     create("integrationTest") {
@@ -30,29 +30,15 @@ val integrationTestImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.testImplementation.get())
 }
 
-val ktormVersion = "3.4.1"
 val koinVersion= "3.1.6"
-val dockerJavaVersion = "3.2.13"
-val jacksonVersion = "2.13.1"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.insert-koin:koin-core:$koinVersion")
 
-    // ktorm for database connections
-    implementation("org.ktorm:ktorm-core:$ktormVersion")
-    implementation("org.ktorm:ktorm-support-postgresql:$ktormVersion")
-    implementation("org.postgresql:postgresql:42.3.4")
-
-    // javalin + jackson for API server
-    implementation("io.javalin:javalin:4.5.0")
-    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-
-    // okhttp for API requests
-    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    // undertow
+    implementation("io.undertow:undertow-core:2.2.19.Final")
 
     // logback for logging
     implementation("ch.qos.logback:logback-classic:1.2.11")

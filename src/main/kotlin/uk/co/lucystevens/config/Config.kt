@@ -14,19 +14,6 @@ class Config {
     fun getServiceVersion(): String =
         getConfig("PROJECT_VERSION", "unknown")
 
-    // Database config
-    fun getDatabaseUrl(): String =
-        getConfig("DATABASE_URL")
-
-    fun getDatabaseUsername(): String =
-        getConfig("DATABASE_USERNAME")
-
-    fun getDatabasePassword(): String =
-        getConfig("DATABASE_PASSWORD")
-
-    fun getDatabaseDriver(): String =
-        getConfig("DATABASE_DRIVER", "org.postgresql.Driver")
-
     // Server config
     fun getAppPort(): Int =
         getConfig("APP_PORT", "7000").toInt()
