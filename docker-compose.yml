@@ -1,0 +1,31 @@
+# docker-compose setup for local development & testing
+version: '3.4'
+
+services:
+  kotlin-app-template:
+    build:
+      context: .
+      args:
+        PROJECT_NAME: kotlin-app-template
+        PROJECT_VERSION: 0.0.1-test
+    depends_on:
+      - "local-db"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://local-db:5432/postgres
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=password
+  local-db:
+    build:
+      context: sql
+    expose:
+      - 5432
+    ports:
+      - "9001:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+    hostname: local-db
+networks:
+  default:
+    driver_opts:
+      com.docker.network.driver.mtu: 1460
+
