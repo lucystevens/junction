@@ -1,8 +1,7 @@
-package uk.co.lucystevens.api.handlers
+package uk.co.lucystevens.junction.api.handlers
 
 import io.undertow.server.HttpHandler
 import io.undertow.server.handlers.NameVirtualHostHandler
-import io.undertow.server.handlers.PathHandler
 
 // Host handler that enforces usage by JunctionPathHandler
 class JunctionHostHandler : NameVirtualHostHandler() {

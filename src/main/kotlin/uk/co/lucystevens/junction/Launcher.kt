@@ -1,6 +1,6 @@
-package uk.co.lucystevens
+package uk.co.lucystevens.junction
 
-import uk.co.lucystevens.config.Modules
+import uk.co.lucystevens.junction.config.Modules
 import org.koin.core.context.startKoin
 
 fun main(args: Array<String>) {

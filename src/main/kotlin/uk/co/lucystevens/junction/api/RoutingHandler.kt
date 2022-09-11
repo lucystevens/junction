@@ -1,9 +1,9 @@
-package uk.co.lucystevens.api
+package uk.co.lucystevens.junction.api
 
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
-import uk.co.lucystevens.api.dto.Route
-import uk.co.lucystevens.api.handlers.JunctionHostHandler
+import uk.co.lucystevens.junction.api.dto.Route
+import uk.co.lucystevens.junction.api.handlers.JunctionHostHandler
 import java.net.URI
 
 class RoutingHandler(private val notFoundHandler: HttpHandler): HttpHandler {

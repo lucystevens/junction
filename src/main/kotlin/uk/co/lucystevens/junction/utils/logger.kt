@@ -1,4 +1,4 @@
-package uk.co.lucystevens.utils
+package uk.co.lucystevens.junction.utils
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

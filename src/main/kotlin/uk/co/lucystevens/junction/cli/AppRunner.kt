@@ -1,7 +1,7 @@
-package uk.co.lucystevens.cli
+package uk.co.lucystevens.junction.cli
 
-import uk.co.lucystevens.api.JunctionServer
-import uk.co.lucystevens.utils.logger
+import uk.co.lucystevens.junction.api.JunctionServer
+import uk.co.lucystevens.junction.utils.logger
 
 class AppRunner(private val junction: JunctionServer) {
 

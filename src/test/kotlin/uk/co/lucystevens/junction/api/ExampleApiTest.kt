@@ -1,9 +1,7 @@
-package uk.co.lucystevens.api
+package uk.co.lucystevens.junction.api
 
 import io.javalin.http.Context
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.runs
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 

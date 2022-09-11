@@ -1,9 +1,8 @@
-package uk.co.lucystevens.api.handlers
+package uk.co.lucystevens.junction.api.handlers
 
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
 import io.undertow.server.handlers.proxy.LoadBalancingProxyClient
-import io.undertow.server.handlers.proxy.ProxyClient
 import io.undertow.server.handlers.proxy.ProxyHandler
 import java.net.URI
 

@@ -1,6 +1,6 @@
-package uk.co.lucystevens
+package uk.co.lucystevens.junction
 
-import uk.co.lucystevens.cli.AppRunner
+import uk.co.lucystevens.junction.cli.AppRunner
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 

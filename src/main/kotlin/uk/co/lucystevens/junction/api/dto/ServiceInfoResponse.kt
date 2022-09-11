@@ -1,4 +1,4 @@
-package uk.co.lucystevens.api.dto
+package uk.co.lucystevens.junction.api.dto
 
 data class ServiceInfoResponse (
     val name: String,
