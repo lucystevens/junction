@@ -1,1 +1,1 @@
-rootProject.name = "kotlin-app-template"
+rootProject.name = "junction"

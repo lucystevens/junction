@@ -1,7 +1,7 @@
 ![Main Status][workflow-badge-main]
 ![Version][version-badge]
 
-# kotlin-app-template
+# junction
 A template repo for starting kotlin applications.
 
 Remove `.github/workflows/initialise-template.yml` once created.
@@ -55,32 +55,32 @@ More detail can be found here: https://www.digitalocean.com/community/tutorials/
 Setup user as sudoer for systemctl commands.
 Add these lines to the `/etc/sudoers.d/deployer` file:
 ```shell
-%deployer ALL= NOPASSWD: /bin/systemctl start kotlin-app-template
-%deployer ALL= NOPASSWD: /bin/systemctl stop kotlin-app-template
-%deployer ALL= NOPASSWD: /bin/systemctl restart kotlin-app-template
+%deployer ALL= NOPASSWD: /bin/systemctl start junction
+%deployer ALL= NOPASSWD: /bin/systemctl stop junction
+%deployer ALL= NOPASSWD: /bin/systemctl restart junction
 ```
 
 #### Setup application as service
 First ssh onto the server and create the service directory
 ```shell
 ssh deployer@server
-mkdir /services/kotlin-app-template
+mkdir /services/junction
 ```
 
 Logout, and copy files over to the server
 ```shell
-scp service/* deployer@server:/services/kotlin-app-template
+scp service/* deployer@server:/services/junction
 ```
 
 Log back in and install as a service
 ```shell
 ssh deployer@server
 
-touch /services/kotlin-app-template/version
-chmod +x /services/kotlin-app-template/run
-chmod +x /services/kotlin-app-template/deploy.sh
+touch /services/junction/version
+chmod +x /services/junction/run
+chmod +x /services/junction/deploy.sh
 
-sudo cp /services/kotlin-app-template/kotlin-app-template.service /etc/systemd/system/
+sudo cp /services/junction/kotlin-app-template.service /etc/systemd/system/
 sudo systemctl daemon-reload
 ```
 
@@ -125,13 +125,13 @@ You should be logged in as the `docker` user created above for these steps.
 
 If running, stop the existing container and remove it
 ```shell
-docker stop kotlin-app-template
-docker rm kotlin-app-template
+docker stop junction
+docker rm junction
 ```
 
 Run the new container, remembering to define any necessary environment variables and the exposed port:
 ```shell
-docker run -d -p PORT:7000 --env-file kotlin-app-template.env lucystevens/kotlin-app-template:latest
+docker run -d -p PORT:7000 --env-file junction.env lucystevens/kotlin-app-template:latest
 ```
 
 ## Contributing
@@ -144,6 +144,6 @@ Please make sure to update tests as appropriate.
 ## License
 [MIT][mit-license]
 
-[workflow-badge-main]: https://img.shields.io/github/workflow/status/lucystevens/kotlin-app-template/test/main?label=main
-[version-badge]: https://img.shields.io/github/v/release/lucystevens/kotlin-app-template
+[workflow-badge-main]: https://img.shields.io/github/workflow/status/lucystevens/junction/test/main?label=main
+[version-badge]: https://img.shields.io/github/v/release/lucystevens/junction
 [mit-license]: https://choosealicense.com/licenses/mit/

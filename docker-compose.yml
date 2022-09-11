@@ -2,11 +2,11 @@
 version: '3.4'
 
 services:
-  kotlin-app-template:
+  junction:
     build:
       context: .
       args:
-        PROJECT_NAME: kotlin-app-template
+        PROJECT_NAME: junction
         PROJECT_VERSION: 0.0.1-test
     depends_on:
       - "local-db"

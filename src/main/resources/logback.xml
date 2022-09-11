@@ -3,7 +3,7 @@
 
     <appender name="SLACK" class="com.github.maricn.logback.SlackAppender">
         <token>${SLACK_API_TOKEN}</token>
-        <channel>#kotlin-app-template</channel>
+        <channel>#junction</channel>
         <layout class="ch.qos.logback.classic.PatternLayout">
             <pattern>%-4relative [%thread] %-5level %class - %msg%n</pattern>
         </layout>
