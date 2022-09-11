@@ -2,6 +2,8 @@ package uk.co.lucystevens.config
 
 import org.koin.dsl.module
 import uk.co.lucystevens.api.JunctionServer
+import uk.co.lucystevens.api.RoutingHandler
+import uk.co.lucystevens.api.handlers.NotFoundHandler
 import uk.co.lucystevens.cli.AppRunner
 import java.time.Clock
 import kotlin.random.Random
@@ -16,7 +18,8 @@ object Modules {
     }
 
     private val apis = module {
-        single { JunctionServer(get()) }
+        single { JunctionServer(get(), get()) }
+        single { RoutingHandler(NotFoundHandler()) }
     }
 
     internal val allModules = listOf(
