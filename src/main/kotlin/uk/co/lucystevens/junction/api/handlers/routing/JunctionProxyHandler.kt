@@ -1,4 +1,4 @@
-package uk.co.lucystevens.junction.api.handlers
+package uk.co.lucystevens.junction.api.handlers.routing
 
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange

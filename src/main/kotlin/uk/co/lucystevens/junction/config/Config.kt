@@ -22,14 +22,27 @@ class Config {
         getConfig("PROJECT_VERSION", "unknown")
 
     // Server config
+    fun getServerHost(): String =
+        getConfig("SERVER_HOST", "localhost")
+
     fun getHttpPort(): Int =
         getConfig("HTTP_PORT", "80").toInt()
 
     fun getHttpsPort(): Int =
         getConfig("HTTPS_PORT", "443").toInt()
 
+    fun getApiPort(): Int =
+        getConfig("API_PORT", "8000").toInt()
+
+    // SSL
     fun getCertificatePassword(): CharArray =
         getConfig("CERT_PASSWORD").toCharArray()
+
+    fun getLetsEncryptUrl(): String =
+        getConfig("LETSENCRYPT_URL")
+
+    fun getEmailAddress(): String =
+        getConfig("EMAIL_ADDRESS")
 
     fun getDataDirectory(): Path =
         Paths.get(getConfig("DATA_DIRECTORY"))

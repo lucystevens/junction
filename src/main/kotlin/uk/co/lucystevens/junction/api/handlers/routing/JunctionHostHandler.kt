@@ -1,4 +1,4 @@
-package uk.co.lucystevens.junction.api.handlers
+package uk.co.lucystevens.junction.api.handlers.routing
 
 import io.undertow.server.HttpHandler
 import io.undertow.server.handlers.NameVirtualHostHandler
@@ -17,7 +17,7 @@ class JunctionHostHandler : NameVirtualHostHandler() {
     }
 
     fun getOrCreateHandler(host: String): JunctionPathHandler =
-        getHost(host) ?: JunctionPathHandler(defaultHandler).apply {
+        getHost(host) ?: JunctionPathHandler().apply {
             addHost(host, this)
         }
 

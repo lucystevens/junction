@@ -7,6 +7,8 @@ import io.undertow.server.HttpServerExchange
 class HttpsRedirectHandler: HttpHandler {
     override fun handleRequest(exchange: HttpServerExchange) {
         // TODO implement
-        Handlers.redirect("").handleRequest(exchange)
+        val url = "${exchange.requestURL}?${exchange.queryString}"
+        println(url)
+        //Handlers.redirect("").handleRequest(exchange)
     }
 }

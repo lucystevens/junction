@@ -2,6 +2,7 @@ import com.avast.gradle.dockercompose.ComposeSettings
 
 plugins {
     kotlin("jvm") version "1.6.10"
+    kotlin("plugin.serialization") version "1.6.10"
 
     application
     `maven-publish`
@@ -31,14 +32,20 @@ val integrationTestImplementation: Configuration by configurations.getting {
 }
 
 val koinVersion= "3.1.6"
+val acme4jVersion = "2.14"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.insert-koin:koin-core:$koinVersion")
 
-    // undertow
+    // undertow + gson
     implementation("io.undertow:undertow-core:2.2.19.Final")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
+
+    // acme4j
+    implementation("org.shredzone.acme4j:acme4j-client:$acme4jVersion")
+    implementation("org.shredzone.acme4j:acme4j-utils:$acme4jVersion")
 
     // logback for logging
     implementation("ch.qos.logback:logback-classic:1.2.11")
