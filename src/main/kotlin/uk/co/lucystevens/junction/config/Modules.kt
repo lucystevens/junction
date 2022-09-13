@@ -6,7 +6,7 @@ import uk.co.lucystevens.junction.api.JunctionServer
 import uk.co.lucystevens.junction.api.handlers.DefaultHandlers
 import uk.co.lucystevens.junction.api.handlers.HttpsRedirectHandler
 import uk.co.lucystevens.junction.api.handlers.NotFoundHandler
-import uk.co.lucystevens.junction.api.handlers.api.ApiHandler
+import uk.co.lucystevens.junction.api.handlers.api.RoutesApiHandler
 import uk.co.lucystevens.junction.api.handlers.routing.HttpRoutingHandler
 import uk.co.lucystevens.junction.api.handlers.routing.HttpsRoutingHandler
 import uk.co.lucystevens.junction.api.ssl.CertificateManager
@@ -34,7 +34,7 @@ object Modules {
         single { JunctionServer(get(), get(), get(), get(), get()) }
         single { HttpsRoutingHandler(get()) }
         single { HttpRoutingHandler(get()) }
-        single { ApiHandler(get(), get(), get(), get()) }
+        single { RoutesApiHandler(get(), get(), get(), get()) }
         single { DefaultHandlers(HttpsRedirectHandler(), NotFoundHandler()) }
     }
 

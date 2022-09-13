@@ -3,33 +3,28 @@ package uk.co.lucystevens.junction.services.acme
 import org.shredzone.acme4j.Account
 import org.shredzone.acme4j.AccountBuilder
 import org.shredzone.acme4j.Status
-import org.shredzone.acme4j.challenge.Dns01Challenge
 import org.shredzone.acme4j.challenge.Http01Challenge
 import org.shredzone.acme4j.util.CSRBuilder
+import org.shredzone.acme4j.util.KeyPairUtils
 import uk.co.lucystevens.junction.api.handlers.acme.AcmeChallengeHandler
 import uk.co.lucystevens.junction.api.ssl.CertificateManager
-import uk.co.lucystevens.junction.api.ssl.KeyManager
-import uk.co.lucystevens.junction.api.ssl.KeyUtils
 import uk.co.lucystevens.junction.config.Config
+import uk.co.lucystevens.junction.services.AccountService
+import uk.co.lucystevens.junction.services.DomainService
+import uk.co.lucystevens.junction.utils.CacheExpiry
 import uk.co.lucystevens.junction.utils.PollingHandler
+import uk.co.lucystevens.junction.utils.cached
 import uk.co.lucystevens.junction.utils.logger
-import java.io.File
-import java.io.FileWriter
 import java.net.URL
-import java.nio.file.Path
-import kotlin.io.path.exists
-import kotlin.io.path.readText
-import kotlin.io.path.writeText
-import kotlin.io.path.writer
+import java.time.temporal.ChronoUnit
 
 
 class ChallengeService(
     private val config: Config,
-    private val keyManager: KeyManager,
     private val pollingHandler: PollingHandler,
+    private val accountService: AccountService,
     private val challengeHandler: AcmeChallengeHandler,
-    private val certificateManager: CertificateManager,
-    sessionProvider: SessionProvider
+    sessionProvider: SessionProvider,
     ) {
 
     private val logger = logger<ChallengeService>()
@@ -40,40 +35,38 @@ class ChallengeService(
         getOrCreateAccount()
     }
 
-    // TODO allow multiple accounts for different domains
-    private fun getOrCreateAccount(): String {
-        val accountFile = config.getDataDirectory().resolve("account.txt")
+    private val account by cached(CacheExpiry(30, ChronoUnit.MINUTES)) {
+        login()
+    }
 
-        return if(!accountFile.exists()) {
-            logger.info("Creating account for email ${config.getEmailAddress()}")
-            val accountKeyPair = keyManager.keyPair
+    private fun getOrCreateAccount(): String =
+        accountService.getAccountLocator() ?: run {
+            val email = accountService.getAccountEmail()
+            logger.info("Creating account for email $email")
+            val accountKeyPair = accountService.getAccountKeyPair()
 
             val account = AccountBuilder()
-                .addContact("mailto:$config.getEmailAddress()")
+                .addContact("mailto:$email")
                 .agreeToTermsOfService()
                 .useKeyPair(accountKeyPair)
                 .create(session)
 
             account.location.toString().apply {
                 logger.info("Account created successfully. Locator: $this")
-                accountFile.writeText(this)
+                accountService.setAccountLocator(this)
             }
         }
-        else {
-            accountFile.readText()
-        }
-    }
 
-    fun login(): Account{
+    private fun login(): Account{
         logger.info("Logging in to account $accountLocator")
-        val keyPair = keyManager.keyPair
+        val keyPair = accountService.getAccountKeyPair()
         val login = session.login(URL(accountLocator), keyPair)
         logger.info("Successfully logged in to account ${login.accountLocation}")
         return login.account
     }
 
-    fun requestCert(account: Account, domain: String): Path {
-        logger.info("Requesting a new wildcard certificate for $domain")
+    fun requestCert(domain: String): CertificateResult {
+        logger.info("Requesting a new certificate for $domain")
         val order = account.newOrder()
             .domains(domain)
             .create()
@@ -111,17 +104,13 @@ class ChallengeService(
         )
         logger.info("Order ready in ${timeTakenToReady}ms")
 
-        // TODO Create private key pair for cert rather than reusing
+        val keyPair = KeyPairUtils.createKeyPair(config.getRSAKeySize())
 
         // Create CSR
         logger.info("Creating CSR for $domain")
-        val outFile = config.getDataDirectory()
-            .resolve("$domain.csr")
         val csrb = CSRBuilder().apply {
             addDomain(domain)
-            //setOrganization("The Example Organization")
-            sign(keyManager.keyPair)
-            write(outFile.writer())
+            sign(keyPair)
         }
         order.execute(csrb.encoded)
 
@@ -137,15 +126,8 @@ class ChallengeService(
 
         val cert = order.certificate?:
             throw IllegalStateException("Could not find certificate for $domain.")
-        val certFile = config.getDataDirectory()
-            .resolve("$domain.crt")
-        certFile.writer().use {
-            cert.writeCertificate(it)
-        }
 
-        certificateManager.addCertificate(domain, cert.certificateChain)
-
-        return certFile
+        return CertificateResult(domain, csrb, cert, keyPair)
     }
 
 }

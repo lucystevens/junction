@@ -1,9 +1,7 @@
 package uk.co.lucystevens.junction.api
 
 import io.undertow.Undertow
-import uk.co.lucystevens.junction.api.handlers.DefaultHandlers
-import uk.co.lucystevens.junction.api.handlers.HttpsRedirectHandler
-import uk.co.lucystevens.junction.api.handlers.api.ApiHandler
+import uk.co.lucystevens.junction.api.handlers.api.RoutesApiHandler
 import uk.co.lucystevens.junction.api.handlers.routing.HttpRoutingHandler
 import uk.co.lucystevens.junction.api.handlers.routing.HttpsRoutingHandler
 import uk.co.lucystevens.junction.api.ssl.CertificateManager
@@ -14,7 +12,7 @@ import uk.co.lucystevens.junction.utils.logger
 class JunctionServer(
     private val httpRoutingHandler: HttpRoutingHandler,
     private val httpsRoutingHandler: HttpsRoutingHandler,
-    private val apiHandler: ApiHandler,
+    private val routesApiHandler: RoutesApiHandler,
     private val certificateManager: CertificateManager,
     private val config: Config
     ) {
@@ -32,7 +30,7 @@ class JunctionServer(
             .addHttpListener(
                 config.getApiPort(),
                 config.getServerHost(),
-                apiHandler
+                routesApiHandler
             )
             .addHttpsListener(
                 config.getHttpsPort(),

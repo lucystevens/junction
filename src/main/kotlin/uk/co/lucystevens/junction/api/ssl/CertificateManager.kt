@@ -1,19 +1,19 @@
 package uk.co.lucystevens.junction.api.ssl
 
 import uk.co.lucystevens.junction.config.Config
-import java.nio.file.Path
+import uk.co.lucystevens.junction.services.DomainService
+import uk.co.lucystevens.junction.utils.readKeyPair
+import java.security.KeyPair
 import java.security.KeyStore
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
-import kotlin.io.path.inputStream
-import kotlin.io.path.listDirectoryEntries
-import kotlin.io.path.nameWithoutExtension
 
 class CertificateManager(
     private val config: Config,
-    private val keyManager: KeyManager) {
+    private val domainService: DomainService
+) {
 
     // Can also be default
     private val keyStore = KeyStore.getInstance("jks").apply {
@@ -22,29 +22,29 @@ class CertificateManager(
 
     val sslContext by lazy { createSslContext() }
 
-    fun addCertificate(alias: String, certChain: List<X509Certificate>){
+    fun addCertificate(alias: String, keyPair: KeyPair, certChain: List<X509Certificate>){
         keyStore.setKeyEntry(
             alias,
-            keyManager.keyPair.private,
+            keyPair.private,
             config.getCertificatePassword(),
             certChain.toTypedArray())
     }
 
     private fun loadCertificates() {
-        config.getDataDirectory()
-            .listDirectoryEntries()
-            .filter { it.endsWith(".crt") }
+        domainService.getDomains()
+            .filter { it.ssl && it.certificate != null && it.keyPair != null }
             .forEach {
                 addCertificate(
-                    it.nameWithoutExtension,
-                    readCert(it)
+                    it.name,
+                    it.keyPair!!.readKeyPair(),
+                    it.certificate!!.readCert()
                 )
             }
     }
 
-    private fun readCert(filePath: Path): List<X509Certificate> {
+    private fun String.readCert(): List<X509Certificate> {
         val factory = CertificateFactory.getInstance("X509")
-        return filePath.inputStream().use { stream ->
+        return byteInputStream().use { stream ->
             factory.generateCertificates(stream)
                 .map { it as X509Certificate }
         }

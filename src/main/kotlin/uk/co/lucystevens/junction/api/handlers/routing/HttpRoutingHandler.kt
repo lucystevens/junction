@@ -2,7 +2,7 @@ package uk.co.lucystevens.junction.api.handlers.routing
 
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
-import uk.co.lucystevens.junction.api.dto.Route
+import uk.co.lucystevens.junction.api.dto.RoutePath
 import uk.co.lucystevens.junction.api.dto.RouteOptions
 import uk.co.lucystevens.junction.api.handlers.DefaultHandlers
 import uk.co.lucystevens.junction.api.handlers.acme.AcmeChallengeHandler
@@ -31,23 +31,23 @@ class HttpRoutingHandler(
         )
     }
 
-    fun updateRoute(route: Route, options: RouteOptions){
+    fun updateRoute(routePath: RoutePath, options: RouteOptions){
         if(options.ssl) {
-            removeRoute(route)
-            sslEnforcedHosts.add(route.host)
+            removeRoute(routePath)
+            sslEnforcedHosts.add(routePath.host)
         }
         else {
-            sslEnforcedHosts.remove(route.host)
-            val pathHandler = hostHandler.getOrCreateHandler(route.host)
-            val proxyHandler = pathHandler.getOrCreateHandler(route.path)
+            sslEnforcedHosts.remove(routePath.host)
+            val pathHandler = hostHandler.getOrCreateHandler(routePath.host)
+            val proxyHandler = pathHandler.getOrCreateHandler(routePath.path)
             proxyHandler.updateHosts(options.targets.map { it.toURI() })
         }
     }
 
-    fun removeRoute(route: Route){
-        sslEnforcedHosts.remove(route.host)
-        hostHandler.getHost(route.host)
-            ?.removePath(route.path)
+    fun removeRoute(routePath: RoutePath){
+        sslEnforcedHosts.remove(routePath.host)
+        hostHandler.getHost(routePath.host)
+            ?.removePath(routePath.path)
     }
 
 

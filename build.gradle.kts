@@ -31,6 +31,7 @@ val integrationTestImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.testImplementation.get())
 }
 
+val ktormVersion = "3.5.0"
 val koinVersion= "3.1.6"
 val acme4jVersion = "2.14"
 
@@ -39,9 +40,15 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.insert-koin:koin-core:$koinVersion")
 
+    // ktorm for database connections
+    implementation("org.ktorm:ktorm-core:$ktormVersion")
+    implementation("org.ktorm:ktorm-support-sqlite:$ktormVersion")
+    implementation("org.ktorm:ktorm-jackson:$ktormVersion")
+
     // undertow + gson
     implementation("io.undertow:undertow-core:2.2.19.Final")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
     // acme4j
     implementation("org.shredzone.acme4j:acme4j-client:$acme4jVersion")

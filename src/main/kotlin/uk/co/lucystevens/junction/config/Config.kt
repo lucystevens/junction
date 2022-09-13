@@ -38,6 +38,9 @@ class Config {
     fun getCertificatePassword(): CharArray =
         getConfig("CERT_PASSWORD").toCharArray()
 
+    fun getRSAKeySize(): Int =
+        getConfig("RSA_KEY_SIZE", "2048").toInt()
+
     fun getLetsEncryptUrl(): String =
         getConfig("LETSENCRYPT_URL")
 
