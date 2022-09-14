@@ -1,7 +1,7 @@
 package uk.co.lucystevens.junction.services
 
-import uk.co.lucystevens.junction.api.dto.RouteOptions
 import uk.co.lucystevens.junction.api.dto.RoutePath
+import uk.co.lucystevens.junction.api.dto.RouteTarget
 import uk.co.lucystevens.junction.api.handlers.routing.JunctionRouteHandler
 import uk.co.lucystevens.junction.db.dao.RouteDao
 
@@ -12,15 +12,15 @@ class RouteService(
 
     // TODO do we need this cache? The route handler has it's own cache
     private val cache = routeDao.getRoutes().associate {
-        it.routePath to it.options
+        it.routePath to it.targets
     }.toMutableMap()
 
-    fun getRoutes(): List<Pair<RoutePath, RouteOptions>> = cache.toList()
+    fun getRoutes(): List<Pair<RoutePath, List<RouteTarget>>> = cache.toList()
 
-    fun putRoute(routePath: RoutePath, options: RouteOptions) {
-        cache[routePath] = options
-        junctionRouteHandler.updateRoute(routePath, options)
-        routeDao.putRoute(routePath, options)
+    fun putRoute(routePath: RoutePath, targets: List<RouteTarget>) {
+        cache[routePath] = targets
+        junctionRouteHandler.updateRoute(routePath, targets)
+        routeDao.putRoute(routePath, targets)
     }
 
     fun removeRoute(routePath: RoutePath) {

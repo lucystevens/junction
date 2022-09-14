@@ -2,6 +2,7 @@ package uk.co.lucystevens.junction.db.dao
 
 import org.ktorm.database.Database
 import org.ktorm.dsl.eq
+import org.ktorm.entity.add
 import org.ktorm.entity.find
 import org.ktorm.entity.toList
 import org.ktorm.entity.update

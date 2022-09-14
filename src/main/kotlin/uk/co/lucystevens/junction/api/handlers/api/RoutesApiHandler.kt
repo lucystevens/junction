@@ -39,9 +39,9 @@ class RoutesApiHandler(
     fun putRoute(exchange: HttpServerExchange) {
         exchange.useBody<RouteDto>(json){ dto ->
             // validate targets
-            dto.options.targets.map { it.toURI() }
+            dto.targets.map { it.toURI() }
             // TODO if SSL enabled, validate cert
-            routeService.putRoute(dto.routePath, dto.options)
+            routeService.putRoute(dto.routePath, dto.targets)
             exchange.noContent()
         }
     }

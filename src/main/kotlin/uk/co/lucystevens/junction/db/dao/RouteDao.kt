@@ -8,8 +8,8 @@ import org.ktorm.entity.find
 import org.ktorm.entity.map
 import org.ktorm.entity.update
 import uk.co.lucystevens.junction.api.dto.RouteDto
-import uk.co.lucystevens.junction.api.dto.RouteOptions
 import uk.co.lucystevens.junction.api.dto.RoutePath
+import uk.co.lucystevens.junction.api.dto.RouteTarget
 import uk.co.lucystevens.junction.db.models.Route
 import uk.co.lucystevens.junction.db.models.routes
 
@@ -17,7 +17,7 @@ class RouteDao(private val database: Database) {
 
     private fun Route.toDto() = RouteDto(
         RoutePath(host, path),
-        options
+        targets
     )
 
     fun getRoutes(): List<RouteDto> =
@@ -29,18 +29,18 @@ class RouteDao(private val database: Database) {
                 (it.path eq routePath.path)
             }
 
-    fun putRoute(routePath: RoutePath, options: RouteOptions) {
+    fun putRoute(routePath: RoutePath, targets: List<RouteTarget>) {
         var route = getRoute(routePath)
         if(route == null){
             route = Route().apply {
                 this.host = routePath.host
                 this.path = routePath.path
-                this.options = options
+                this.targets = targets
             }
             database.routes.add(route)
         }
         else {
-            route.options = options
+            route.targets = targets
             database.routes.update(route)
         }
     }

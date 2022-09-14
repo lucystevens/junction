@@ -9,7 +9,7 @@ import org.ktorm.schema.Table
 import org.ktorm.schema.boolean
 import org.ktorm.schema.timestamp
 import org.ktorm.schema.varchar
-import uk.co.lucystevens.junction.api.dto.RouteOptions
+import uk.co.lucystevens.junction.api.dto.RouteTarget
 
 const val schema = "junction"
 
@@ -18,7 +18,7 @@ val columnOptions = mutableMapOf<Column<*>, MutableList<String>>()
 object Routes : Table<Route>(tableName = "routes", schema = schema) {
     val host = varchar("host").primaryKey().bindTo { it.host }
     val path = varchar("path").primaryKey().bindTo { it.path }
-    val options = json<RouteOptions>("options").notNull().bindTo { it.options }
+    val targets = json<List<RouteTarget>>("targets").notNull().bindTo { it.targets }
 }
 
 object AppConfigs : Table<AppConfig>(tableName = "config", schema = schema) {
