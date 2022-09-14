@@ -2,6 +2,8 @@ package uk.co.lucystevens.junction.services.acme
 
 import org.shredzone.acme4j.Account
 import org.shredzone.acme4j.AccountBuilder
+import org.shredzone.acme4j.Certificate
+import org.shredzone.acme4j.Order
 import org.shredzone.acme4j.Status
 import org.shredzone.acme4j.challenge.Http01Challenge
 import org.shredzone.acme4j.util.CSRBuilder
@@ -16,6 +18,7 @@ import uk.co.lucystevens.junction.utils.PollingHandler
 import uk.co.lucystevens.junction.utils.cached
 import uk.co.lucystevens.junction.utils.logger
 import java.net.URL
+import java.security.KeyPair
 import java.time.temporal.ChronoUnit
 
 
@@ -65,20 +68,15 @@ class ChallengeService(
         return login.account
     }
 
-    fun requestCert(domain: String): CertificateResult {
-        logger.info("Requesting a new certificate for $domain")
-        val order = account.newOrder()
-            .domains(domain)
-            .create()
-
+    fun Order.processChallenges() {
         // Process auth challenges
-        for (auth in order.authorizations) {
+        for (auth in authorizations) {
             if (auth.status == Status.PENDING) {
                 val challenge = auth.findChallenge(Http01Challenge::class.java)?:
-                    throw IllegalStateException("Could not find http-01 challenge.")
+                throw IllegalStateException("Could not find http-01 challenge.")
                 val challengeDomain = auth.identifier.domain
 
-                logger.info("Creating route: ${challenge.token}=${challenge.authorization} for $domain")
+                logger.info("Creating route: ${challenge.token}=${challenge.authorization} for $challengeDomain")
                 challengeHandler.addChallenge(AcmeChallenge(
                     challengeDomain,
                     challenge.token,
@@ -99,10 +97,46 @@ class ChallengeService(
         // Wait for order to be ready
         logger.info("Waiting for certificate order to be ready")
         val timeTakenToReady = pollingHandler.waitForReady(
-            getStatus = { order.status },
-            update = { order.update() }
+            getStatus = { status },
+            update = { update() }
         )
         logger.info("Order ready in ${timeTakenToReady}ms")
+    }
+
+    fun Order.downloadCertificate(): Certificate {
+        // Download cert
+        logger.info("Waiting for certificate order to complete")
+        val timeTakenToComplete = pollingHandler.waitForComplete(
+            getStatus = { status },
+            update = { update() }
+        )
+        if(status == Status.INVALID)
+            throw IllegalStateException("Order invalid. Response: ${error?.asJSON()}")
+        logger.info("Completed order in ${timeTakenToComplete}ms")
+
+        return certificate?:
+            throw IllegalStateException("Could not find certificate.")
+    }
+
+    fun renewCert(domain: String, csr: CSRBuilder): Certificate {
+        logger.info("Renewing certificate for $domain")
+        val order = account.newOrder()
+            .domains(domain)
+            .create()
+
+        order.processChallenges()
+        order.execute(csr.encoded)
+
+        return order.downloadCertificate()
+    }
+
+    fun requestCert(domain: String): CertificateResult {
+        logger.info("Requesting a new certificate for $domain")
+        val order = account.newOrder()
+            .domains(domain)
+            .create()
+
+        order.processChallenges()
 
         val keyPair = KeyPairUtils.createKeyPair(config.getRSAKeySize())
 
@@ -114,19 +148,7 @@ class ChallengeService(
         }
         order.execute(csrb.encoded)
 
-        // Download cert
-        logger.info("Waiting for certificate order to complete")
-        val timeTakenToComplete = pollingHandler.waitForComplete(
-            getStatus = { order.status },
-            update = { order.update() }
-        )
-        if(order.status == Status.INVALID)
-            throw IllegalStateException("Order invalid. Response: ${order.error?.asJSON()}")
-        logger.info("Completed order in ${timeTakenToComplete}ms")
-
-        val cert = order.certificate?:
-            throw IllegalStateException("Could not find certificate for $domain.")
-
+        val cert = order.downloadCertificate()
         return CertificateResult(domain, csrb, cert, keyPair)
     }
 

@@ -27,14 +27,19 @@ abstract class ApiHandler(
     abstract val routes: Map<ApiRoute, HttpHandler>
 
     override fun handleRequest(exchange: HttpServerExchange) {
-        val token = exchange.getHeader(tokenHeader)
-        if(token.firstOrNull() != config.getAdminToken()){
-            exchange.statusCode = StatusCodes.UNAUTHORIZED
-            return
+        if(exchange.validateToken()){
+            exchange.dispatch(
+                routes[exchange.route] ?: NotFoundHandler()
+            )
         }
+        else exchange.statusCode = StatusCodes.UNAUTHORIZED
 
-        exchange.dispatch(
-           routes[exchange.route] ?: NotFoundHandler()
-        )
+
+    }
+
+    private fun HttpServerExchange.validateToken(): Boolean {
+        val adminToken = config.getAdminToken()
+        val token = getHeader(tokenHeader).firstOrNull()
+        return adminToken == null || token == adminToken
     }
 }

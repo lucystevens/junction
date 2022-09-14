@@ -5,14 +5,12 @@ import org.ktorm.dsl.eq
 import org.ktorm.entity.add
 import org.ktorm.entity.find
 import org.ktorm.entity.update
-import uk.co.lucystevens.junction.api.ssl.KeyUtils
 import uk.co.lucystevens.junction.db.models.AppConfig
 import uk.co.lucystevens.junction.db.models.config
-import java.security.KeyPair
 
 class ConfigDao(
-    private val database: Database,
-    private val keyUtils: KeyUtils) {
+    private val database: Database
+) {
 
     fun getConfig(key: String): AppConfig? =
         database.config.find { it.key eq key }

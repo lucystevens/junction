@@ -50,7 +50,7 @@ class DomainsApiHandler(
     // TODO also accept list of domains
     fun updateDomain(exchange: HttpServerExchange) {
         exchange.useBody<DomainRequestDto>(json){ dto ->
-            domainService.updateDomain(dto.name)
+            domainService.updateDomainSettings(dto)
             exchange.noContent()
         }
     }

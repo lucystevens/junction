@@ -26,7 +26,7 @@ class CertificateManager(
         keyStore.setKeyEntry(
             alias,
             keyPair.private,
-            config.getCertificatePassword(),
+            config.getSecretKey(),
             certChain.toTypedArray())
     }
 
@@ -52,7 +52,7 @@ class CertificateManager(
 
     private fun createSslContext(): SSLContext{
             val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-            kmf.init(keyStore, config.getCertificatePassword())
+            kmf.init(keyStore, config.getSecretKey())
             loadCertificates()
 
             return SSLContext.getInstance("TLS").apply {

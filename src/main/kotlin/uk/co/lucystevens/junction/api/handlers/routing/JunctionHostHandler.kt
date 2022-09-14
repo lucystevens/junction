@@ -16,7 +16,7 @@ class JunctionHostHandler : NameVirtualHostHandler() {
         else throw IllegalArgumentException("JunctionHostHandler must be used with JunctionPathHandler.")
     }
 
-    fun getOrCreateHandler(host: String): JunctionPathHandler =
+    fun addHost(host: String): JunctionPathHandler =
         getHost(host) ?: JunctionPathHandler().apply {
             addHost(host, this)
         }

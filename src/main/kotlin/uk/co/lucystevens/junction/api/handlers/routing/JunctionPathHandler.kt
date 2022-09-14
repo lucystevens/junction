@@ -2,8 +2,8 @@ package uk.co.lucystevens.junction.api.handlers.routing
 
 import io.undertow.server.HttpHandler
 import io.undertow.server.HttpServerExchange
-import io.undertow.server.handlers.ResponseCodeHandler
 import io.undertow.util.PathMatcher
+import uk.co.lucystevens.junction.api.handlers.NotFoundHandler
 
 // Path handler that enforces usage by JunctionProxyHandler, and
 // stores references to the proxy handlers for each path
@@ -14,11 +14,9 @@ class JunctionPathHandler : HttpHandler {
 
     override fun handleRequest(exchange: HttpServerExchange) {
         val match = pathMatcher.match(exchange.relativePath)
-        if (match.value == null) {
-            ResponseCodeHandler.HANDLE_404.handleRequest(exchange)
-            return
-        }
-        match.value.handleRequest(exchange)
+        exchange.dispatch(
+            match.value ?: NotFoundHandler()
+        )
     }
 
     fun addPath(path: String, handler: JunctionProxyHandler) {
@@ -28,7 +26,7 @@ class JunctionPathHandler : HttpHandler {
 
     fun getPath(path: String): JunctionProxyHandler? = proxyHandlers[path]
 
-    fun getOrCreateHandler(path: String): JunctionProxyHandler =
+    fun addPath(path: String): JunctionProxyHandler =
         getPath(path) ?: JunctionProxyHandler().apply {
             addPath(path, this)
         }

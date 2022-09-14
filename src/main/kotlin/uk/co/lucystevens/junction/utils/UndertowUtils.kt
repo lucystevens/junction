@@ -21,7 +21,17 @@ class FunctionHandler(
     override fun handleRequest(exchange: HttpServerExchange) {
         handler(exchange)
     }
+}
 
+fun dispatch(handler: (exchange: HttpServerExchange) -> HttpHandler) =
+    DispatchHandler(handler)
+
+class DispatchHandler(
+    private val handler: (exchange: HttpServerExchange) -> HttpHandler
+) : HttpHandler{
+    override fun handleRequest(exchange: HttpServerExchange) {
+        exchange.dispatch(handler(exchange))
+    }
 }
 
 inline fun <reified T> HttpServerExchange.useBody(json: Json, crossinline callback: (T) -> Unit) =

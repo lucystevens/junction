@@ -1,14 +1,12 @@
 package uk.co.lucystevens.junction.services
 
-import uk.co.lucystevens.junction.api.dto.RoutePath
 import uk.co.lucystevens.junction.api.dto.RouteOptions
-import uk.co.lucystevens.junction.api.handlers.routing.HttpRoutingHandler
-import uk.co.lucystevens.junction.api.handlers.routing.HttpsRoutingHandler
+import uk.co.lucystevens.junction.api.dto.RoutePath
+import uk.co.lucystevens.junction.api.handlers.routing.JunctionRouteHandler
 import uk.co.lucystevens.junction.db.dao.RouteDao
 
 class RouteService(
-    private val httpRoutingHandler: HttpRoutingHandler,
-    private val httpsRoutingHandler: HttpsRoutingHandler,
+    private val junctionRouteHandler: JunctionRouteHandler,
     private val routeDao: RouteDao
 ) {
 
@@ -21,15 +19,13 @@ class RouteService(
 
     fun putRoute(routePath: RoutePath, options: RouteOptions) {
         cache[routePath] = options
-        httpRoutingHandler.updateRoute(routePath, options)
-        httpsRoutingHandler.updateRoute(routePath, options)
+        junctionRouteHandler.updateRoute(routePath, options)
         routeDao.putRoute(routePath, options)
     }
 
     fun removeRoute(routePath: RoutePath) {
         cache.remove(routePath)
-        httpRoutingHandler.removeRoute(routePath)
-        httpsRoutingHandler.removeRoute(routePath)
+        junctionRouteHandler.removeRoute(routePath)
         routeDao.removeRoute(routePath)
     }
 

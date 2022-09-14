@@ -24,6 +24,10 @@ class DomainDao(private val database: Database) {
         database.domains.update(domain)
     }
 
+    fun insertDomain(domain: DomainData) {
+        database.domains.add(domain)
+    }
+
     fun removeDomain(domain: DomainData) {
         domain.delete()
     }

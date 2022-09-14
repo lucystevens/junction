@@ -22,8 +22,8 @@ class Config {
         getConfig("PROJECT_VERSION", "unknown")
 
     // Server config
-    fun getServerHost(): String =
-        getConfig("SERVER_HOST", "localhost")
+    fun getBindAddress(): String =
+        getConfig("BIND_ADDRESS", "localhost")
 
     fun getHttpPort(): Int =
         getConfig("HTTP_PORT", "80").toInt()
@@ -35,22 +35,22 @@ class Config {
         getConfig("API_PORT", "8000").toInt()
 
     // SSL
-    fun getCertificatePassword(): CharArray =
-        getConfig("CERT_PASSWORD").toCharArray()
+    fun getSecretKey(): CharArray =
+        getConfig("SECRET_KEY").toCharArray()
 
     fun getRSAKeySize(): Int =
         getConfig("RSA_KEY_SIZE", "2048").toInt()
 
-    fun getLetsEncryptUrl(): String =
-        getConfig("LETSENCRYPT_URL")
+    fun getAcmeUrl(): String =
+        getConfig("ACME_URL")
 
     fun getEmailAddress(): String =
         getConfig("EMAIL_ADDRESS")
 
-    fun getDataDirectory(): Path =
-        Paths.get(getConfig("DATA_DIRECTORY"))
+    fun getDatastore(): Path =
+        Paths.get(getConfig("DATASTORE"))
             .createDirectories()
 
-    fun getAdminToken(): String =
-        getConfig("ADMIN_TOKEN")
+    fun getAdminToken(): String? =
+        getNullableConfig("ADMIN_TOKEN")
 }

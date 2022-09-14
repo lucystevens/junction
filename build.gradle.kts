@@ -44,8 +44,9 @@ dependencies {
     implementation("org.ktorm:ktorm-core:$ktormVersion")
     implementation("org.ktorm:ktorm-support-sqlite:$ktormVersion")
     implementation("org.ktorm:ktorm-jackson:$ktormVersion")
+    implementation("org.xerial:sqlite-jdbc:3.39.3.0")
 
-    // undertow + gson
+    // undertow + kotlinx
     implementation("io.undertow:undertow-core:2.2.19.Final")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
