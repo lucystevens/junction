@@ -31,7 +31,7 @@ class JunctionServer(
             .addHttpsListener(
                 config.getHttpsPort(),
                 config.getBindAddress(),
-                certificateManager.sslContext,
+                certificateManager.createSslContext(),
                 defaultHandlers.httpsHandler
             )
             .build()
@@ -39,4 +39,4 @@ class JunctionServer(
         server.start()
         logger.info("Undertow server started")
     }
-}
+}}

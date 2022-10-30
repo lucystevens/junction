@@ -9,21 +9,34 @@ services:
         PROJECT_NAME: junction
         PROJECT_VERSION: 0.0.1-test
     depends_on:
-      - "local-db"
+      - "pebble"
     environment:
-      - DATABASE_URL=jdbc:postgresql://local-db:5432/postgres
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=password
-  local-db:
-    build:
-      context: sql
+      - SECRET_KEY=secret
+      - ACME_URL=acme://pebble
+  pebble:
+    image: letsencrypt/pebble
+    command: pebble
     expose:
-      - 5432
+      - 14000
     ports:
-      - "9001:5432"
+      - "14000:14000"  # ACME port
+      - "15000:15000"  # Management port
     environment:
-      - POSTGRES_PASSWORD=password
-    hostname: local-db
+      - PEBBLE_VA_NOSLEEP=1
+    extra_hosts:
+      - "server1:host-gateway"
+      - "server2:host-gateway"
+  test-curl:
+    image: curlimages/curl
+    command: curl -iv https://closetbrewingproject.co.uk/api/routes
+    extra_hosts:
+      - "closetbrewingproject.co.uk:host-gateway"
+  integration-test:
+    build:
+      context: src/integrationTest/resources
+    extra_hosts:
+      - "server1:host-gateway"
+      - "server2:host-gateway"
 networks:
   default:
     driver_opts:

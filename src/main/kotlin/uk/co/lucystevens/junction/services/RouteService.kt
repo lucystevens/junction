@@ -11,9 +11,17 @@ class RouteService(
 ) {
 
     // TODO do we need this cache? The route handler has it's own cache
-    private val cache = routeDao.getRoutes().associate {
-        it.routePath to it.targets
-    }.toMutableMap()
+    private val cache by lazy {
+        routeDao.getRoutes().associate {
+            it.route to it.targets
+        }.toMutableMap()
+    }
+
+    fun loadRoutes() {
+        cache.forEach { (routePath, routeTargets) ->
+            junctionRouteHandler.updateRoute(routePath, routeTargets)
+        }
+    }
 
     fun getRoutes(): List<Pair<RoutePath, List<RouteTarget>>> = cache.toList()
 

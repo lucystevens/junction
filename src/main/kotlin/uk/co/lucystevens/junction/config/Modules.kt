@@ -31,7 +31,7 @@ import kotlin.random.Random
 object Modules {
 
     private val utils = module {
-        single { AppRunner(get()) }
+        single { AppRunner(get(), get(), get(), get(), get()) }
         single { Config() }
         single<Clock> { Clock.systemDefaultZone() }
         single<Random> { Random.Default }
@@ -81,6 +81,9 @@ object Modules {
         )
 
     private val services = module {
+        // database
+        single { setupDatabase(get()) }
+
         // entity services
         single { RouteService(get(), get()) }
         single { DomainService(get(), get(), get()) }
@@ -92,7 +95,7 @@ object Modules {
         single { ConfigDao(get()) }
 
         // ssl + certs
-        single { CertificateManager(get(), get()) }
+        single { CertificateManager(get()) }
         single { ChallengeService(get(), get(), get(), get(), get()) }
         single { SessionProvider(get())}
     }

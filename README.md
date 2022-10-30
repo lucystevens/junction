@@ -94,7 +94,7 @@ Below is an example request that would set up ssl for the
 be accessed over https.
 ```json
 {
-  "domain": "routes.mydomain.com",
+  "name": "routes.mydomain.com",
   "redirectToHttps": true,
   "enableSsl": true
 }
@@ -120,6 +120,7 @@ Below are the requirements before the first beta version of junction will be rel
 ### v1.0.0
 Below are future improvements being considered for post-beta
  - UI for managing routes
+ - More user configurable options (logging, metrics, email notifications)
  - Support for data stores
  - More options for routing e.g. cookie-based routes
  - DNS-01 challenge support for wildcard certificates
@@ -142,6 +143,51 @@ To run integration tests:
 ```shell
 ./gradlew integrationTest
 ```
+
+### Manual Testing
+Remove tmp data directory, then bring up the testing container and pebble
+```shell
+rm -rf tmp/
+docker-compose up -d testing
+docker-compose up peddle
+```
+
+Start the junction server with the following env variables
+```shell
+export DATASTORE=tmp/data
+export CERT_PASSWORD=password
+export ADMIN_TOKEN=token
+export SECRET_KEY=secret
+export ACME_URL=acme://pebble
+export EMAIL_ADDRESS=test@email.com
+export HTTP_PORT=5002
+./gradlew run
+```
+
+Send a PUT request to `localhost:8000/api/domains` with the following body, to create an initial SSL domain:
+```json
+{
+    "name": "server1",
+    "redirectToHttps": true,
+    "enableSsl": true
+}
+```
+
+Send a PUT request to `localhost:8000/api/routes` with the following body, to create a proxy route for the Junction API:
+```json
+{
+    "route": {
+        "host": "server1",
+        "path": "/api"
+    },
+    "targets": [{
+        "host": "localhost",
+        "port": 8000
+    }]
+}
+```
+
+Send a GET request (from testing container) to `https://server1/api/routes` to test the proxy and SSL work
 
 ### Deployment
 #### Release workflow

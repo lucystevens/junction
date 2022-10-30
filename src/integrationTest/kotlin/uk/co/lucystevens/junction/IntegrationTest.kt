@@ -2,8 +2,9 @@ package uk.co.lucystevens.junction
 
 import org.junit.jupiter.api.Test
 import org.ktorm.database.Database
-import org.ktorm.support.postgresql.PostgreSqlDialect
 
+// TODO write a simple integration test for the happy path against a single container
+// Use acceptance tests with mocked SSL/ACME for other paths
 class IntegrationTest {
 
     @Test

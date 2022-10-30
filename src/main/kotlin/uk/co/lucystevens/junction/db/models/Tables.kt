@@ -10,23 +10,22 @@ import org.ktorm.schema.boolean
 import org.ktorm.schema.timestamp
 import org.ktorm.schema.varchar
 import uk.co.lucystevens.junction.api.dto.RouteTarget
-
-const val schema = "junction"
+import uk.co.lucystevens.junction.utils.logger
 
 val columnOptions = mutableMapOf<Column<*>, MutableList<String>>()
 
-object Routes : Table<Route>(tableName = "routes", schema = schema) {
+object Routes : Table<Route>(tableName = "routes") {
     val host = varchar("host").primaryKey().bindTo { it.host }
     val path = varchar("path").primaryKey().bindTo { it.path }
     val targets = json<List<RouteTarget>>("targets").notNull().bindTo { it.targets }
 }
 
-object AppConfigs : Table<AppConfig>(tableName = "config", schema = schema) {
+object AppConfigs : Table<AppConfig>(tableName = "config") {
     val key = varchar("key").primaryKey().bindTo { it.key }
     val value = varchar("value").notNull().bindTo { it.value }
 }
 
-object Domains : Table<DomainData>(tableName = "domains", schema = schema) {
+object Domains : Table<DomainData>(tableName = "domains") {
     val name = varchar("name").primaryKey().bindTo { it.name }
     val ssl = boolean("ssl").bindTo { it.ssl }
     val redirectToHttps = boolean("redirectToHttps").bindTo { it.redirectToHttps }
@@ -53,12 +52,15 @@ fun <T: Any> Column<T>.withDefault(defaultVal: T) =
 fun Column<String>.withDefault(defaultVal: String) =
     addOption("DEFAULT '$defaultVal'")
 
+fun Database.createSchema(){
+    createIfNotExists(Routes)
+    createIfNotExists(AppConfigs)
+    createIfNotExists(Domains)
+}
+
 fun <T : Entity<T>> Database.createIfNotExists(table: Table<T>){
     useTransaction {
         useConnection {
-            it.prepareStatement("CREATE SCHEMA IF NOT EXISTS ${table.schema};")
-                .executeUpdate()
-
             it.prepareStatement(table.generateSql())
                 .executeUpdate()
         }
@@ -66,7 +68,7 @@ fun <T : Entity<T>> Database.createIfNotExists(table: Table<T>){
 }
 
 fun <T : Entity<T>> Table<T>.generateSql() = """
-        CREATE TABLE IF NOT EXISTS $schema.$tableName (
+        CREATE TABLE IF NOT EXISTS $tableName (
             ${columns.joinToString(",\n") { it.generateSql() }},
             CONSTRAINT pk_$tableName PRIMARY KEY (${primaryKeys.joinToString(",") { it.name }})
         )

@@ -20,7 +20,7 @@ class AcmeChallengeHandler : HttpHandler {
         } ?: throw IllegalArgumentException("No challenge found for domain $domain and token $token")
 
         exchange.ok(challenge.content, "text/plain")
-        challenges.remove(challenge)
+        //challenges.remove(challenge)
     }
 
     fun addChallenge(challenge: AcmeChallenge) {

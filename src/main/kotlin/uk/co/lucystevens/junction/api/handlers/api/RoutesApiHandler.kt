@@ -1,10 +1,8 @@
 package uk.co.lucystevens.junction.api.handlers.api
 
 import io.undertow.server.HttpServerExchange
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import uk.co.lucystevens.junction.api.dto.DomainRequestDto
 import uk.co.lucystevens.junction.api.dto.RouteDto
 import uk.co.lucystevens.junction.api.dto.RoutePath
 import uk.co.lucystevens.junction.config.Config
@@ -41,7 +39,7 @@ class RoutesApiHandler(
             // validate targets
             dto.targets.map { it.toURI() }
             // TODO if SSL enabled, validate cert
-            routeService.putRoute(dto.routePath, dto.targets)
+            routeService.putRoute(dto.route, dto.targets)
             exchange.noContent()
         }
     }

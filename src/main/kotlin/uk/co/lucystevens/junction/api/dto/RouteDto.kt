@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RouteDto(
-    val routePath: RoutePath,
+    val route: RoutePath,
     var targets: List<RouteTarget>,
 )

@@ -17,7 +17,7 @@ class CacheDelegate<T>(
     private val fetchFn: () -> T
 ) {
 
-    var cachedValue: Pair<T, Instant> = fetch()
+    var cachedValue: Pair<T?, Instant> = null to Instant.now(clock)
 
     private fun fetch(): Pair<T, Instant> =
         fetchFn() to nextExpiry()
@@ -30,10 +30,10 @@ class CacheDelegate<T>(
         cachedValue.second < Instant.now(clock)
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        if(isExpired()){
+        if(isExpired() || cachedValue.first == null){
             cachedValue = fetch()
         }
-        return cachedValue.first
+        return cachedValue.first!!
     }
 
 }

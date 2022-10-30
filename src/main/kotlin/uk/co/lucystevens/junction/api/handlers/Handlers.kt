@@ -9,6 +9,7 @@ import uk.co.lucystevens.junction.api.handlers.api.ApiHandler
 import uk.co.lucystevens.junction.services.DomainService
 import uk.co.lucystevens.junction.utils.asHandler
 import uk.co.lucystevens.junction.utils.dispatch
+import uk.co.lucystevens.junction.utils.ifExists
 
 fun AcmeRoutingHandler(
     acmeChallengeHandler: AcmeChallengeHandler,
@@ -32,8 +33,8 @@ fun HttpsRedirectHandler(
     domainService: DomainService,
     nextHandler: HttpHandler
 ) = dispatch {
-    val url = "${it.requestURL}?${it.queryString}"
-    println(url)
+    val url = "https://${it.hostName}${it.requestPath}${it.queryString.ifExists { qs -> "?$qs" }}"
+    println("Redirecting to $url")
     val shouldRedirect = domainService.getDomain(it.hostName)
         ?.redirectToHttps ?: false
     if(shouldRedirect) Handlers.redirect(url)

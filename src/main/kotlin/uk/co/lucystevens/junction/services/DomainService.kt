@@ -17,9 +17,11 @@ class DomainService(
     private val certificateManager: CertificateManager
 ) {
 
-    private val cache = domainDao.getDomains()
-        .associateBy { it.name }
-        .toMutableMap()
+    private val cache by lazy {
+        domainDao.getDomains()
+            .associateBy { it.name }
+            .toMutableMap()
+    }
 
     fun updateDomainSettings(domainRequest: DomainRequestDto) {
         var domain = getDomain(domainRequest.name)
@@ -94,6 +96,7 @@ class DomainService(
                 certificateResult.keyPair,
                 certificateResult.cert.certificateChain
             )
+            certificateManager.updateKeyManager()
         }.start()
     }
 
@@ -115,7 +118,7 @@ class DomainService(
             domainDao.removeDomain(it)
         }
 
-    fun getDomains() = cache.values
+    fun getDomains() = cache.values.toList()
 
     fun getDomain(domain: String): DomainData? = cache[domain]
 }
