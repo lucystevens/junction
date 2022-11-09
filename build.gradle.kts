@@ -47,7 +47,7 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.39.3.0")
 
     // undertow + kotlinx
-    implementation("io.undertow:undertow-core:2.2.19.Final")
+    implementation("io.undertow:undertow-core:2.3.0.Final")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
@@ -59,20 +59,26 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.11")
     implementation("com.github.maricn:logback-slack-appender:1.6.1")
 
+
     // testing
     testImplementation(kotlin("test"))
     testImplementation("io.mockk:mockk:1.12.3")
+
+    // javalin + okhttp for mock/test server
+    integrationTestImplementation("io.javalin:javalin:5.1.3")
+    integrationTestImplementation("com.squareup.okhttp3:okhttp:4.10.0")
+    integrationTestImplementation("com.google.code.gson:gson:2.10")
 }
 
 application {
-    mainClass.set("uk.co.lucystevens.LauncherKt")
+    mainClass.set("uk.co.lucystevens.junction.LauncherKt")
 }
 
 /**
  *  Tasks
  */
 configure<ComposeSettings> {
-    startedServices.set(listOf("local-db"))
+    startedServices.set(listOf("junction", "pebble", "integration-test"))
     forceRecreate.set(true)
 }
 
@@ -90,14 +96,18 @@ tasks.shadowJar {
     archiveClassifier.set("")
 }
 
-val integrationTest = task<Test>("integrationTest") {
+val integrationTestInternal = task<Test>("integrationTestInternal") {
     useJUnitPlatform()
-    description = "Runs integration tests."
-    group = "verification"
 
     testClassesDirs = sourceSets["integrationTest"].output.classesDirs
     classpath = sourceSets["integrationTest"].runtimeClasspath
     outputs.upToDateWhen { false }
+}
+
+val integrationTest = task("integrationTest") {
+    description = "Runs integration tests."
+    group = "verification"
+
     mustRunAfter(tasks.composeUp)
 }
 

@@ -1,0 +1,10 @@
+{
+  "route": {
+    "host": "junction",
+    "path": "/test"
+  },
+  "targets": [{
+    "host": "integration-test",
+    "port": 8000
+  }]
+}

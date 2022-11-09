@@ -12,7 +12,18 @@ services:
       - "pebble"
     environment:
       - SECRET_KEY=secret
-      - ACME_URL=acme://pebble
+      - ACME_URL=acme://pebble/pebble
+      - DATASTORE=tmp/data
+      - CERT_PASSWORD=password
+      - ADMIN_TOKEN=token
+      - EMAIL_ADDRESS=test@mail.com
+      - HTTP_PORT=5002
+      - HTTPS_PORT=8443
+      - BIND_ADDRESS=0.0.0.0
+    ports:
+      - "8000:8000"
+      - "5002:5002"
+      - "8443:8443"
   pebble:
     image: letsencrypt/pebble
     command: pebble
@@ -23,20 +34,14 @@ services:
       - "15000:15000"  # Management port
     environment:
       - PEBBLE_VA_NOSLEEP=1
-    extra_hosts:
-      - "server1:host-gateway"
-      - "server2:host-gateway"
-  test-curl:
-    image: curlimages/curl
-    command: curl -iv https://closetbrewingproject.co.uk/api/routes
-    extra_hosts:
-      - "closetbrewingproject.co.uk:host-gateway"
   integration-test:
     build:
-      context: src/integrationTest/resources
-    extra_hosts:
-      - "server1:host-gateway"
-      - "server2:host-gateway"
+      context: ./
+      dockerfile: ./src/integrationTest/resources/Dockerfile
+    volumes:
+      - ./build/reports/tests:/app/build/reports/tests
+    depends_on:
+      - "junction"
 networks:
   default:
     driver_opts:

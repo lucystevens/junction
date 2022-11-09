@@ -1,0 +1,5 @@
+{
+  "name": "junction",
+  "redirectToHttps": true,
+  "enableSsl": true
+}
