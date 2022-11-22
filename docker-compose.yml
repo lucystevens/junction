@@ -34,6 +34,14 @@ services:
       - "15000:15000"  # Management port
     environment:
       - PEBBLE_VA_NOSLEEP=1
+  pebble-novalidate: # use novalidate for acceptance tests to avoid doing full host mapping
+    image: letsencrypt/pebble
+    command: pebble
+    ports:
+      - "14000:14000"  # ACME port
+    environment:
+      - PEBBLE_VA_NOSLEEP=1
+      - PEBBLE_VA_ALWAYS_VALID=1
   integration-test:
     build:
       context: ./

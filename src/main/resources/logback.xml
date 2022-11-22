@@ -1,23 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <appender name="SLACK" class="com.github.maricn.logback.SlackAppender">
-        <token>${SLACK_API_TOKEN}</token>
-        <channel>#junction</channel>
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <pattern>%-4relative [%thread] %-5level %class - %msg%n</pattern>
-        </layout>
-        <username>Service Logging</username>
-        <colorCoding>true</colorCoding>
-    </appender>
-
-    <appender name="SLACK-ASYNC" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="SLACK" />
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
-        </filter>
-    </appender>
-
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d %p %c{1.} [%t] %m%n</pattern>
@@ -26,7 +9,6 @@
 
     <logger level="INFO" name="uk.co.lucystevens"/>
     <root level="WARN">
-        <appender-ref ref="SLACK-ASYNC"/>
         <appender-ref ref="CONSOLE" />
     </root>
 

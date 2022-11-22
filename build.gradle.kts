@@ -25,14 +25,23 @@ sourceSets {
         compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
         runtimeClasspath += sourceSets.main.get().output + sourceSets.test.get().output
     }
+
+    create("acceptanceTest") {
+        compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
+        runtimeClasspath += sourceSets.main.get().output + sourceSets.test.get().output
+    }
 }
 
 val integrationTestImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.testImplementation.get())
 }
 
+val acceptanceTestImplementation: Configuration by configurations.getting {
+    extendsFrom(configurations.testImplementation.get())
+}
+
 val ktormVersion = "3.5.0"
-val koinVersion= "3.1.6"
+val koinVersion= "3.2.2"
 val acme4jVersion = "2.14"
 
 dependencies {
@@ -56,18 +65,22 @@ dependencies {
     implementation("org.shredzone.acme4j:acme4j-utils:$acme4jVersion")
 
     // logback for logging
-    implementation("ch.qos.logback:logback-classic:1.2.11")
-    implementation("com.github.maricn:logback-slack-appender:1.6.1")
+    implementation("ch.qos.logback:logback-classic:1.4.5")
 
 
     // testing
-    testImplementation(kotlin("test"))
+    //testImplementation(kotlin("test"))
     testImplementation("io.mockk:mockk:1.12.3")
+    testImplementation("io.insert-koin:koin-test:$koinVersion")
+    testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")
 
     // javalin + okhttp for mock/test server
-    integrationTestImplementation("io.javalin:javalin:5.1.3")
-    integrationTestImplementation("com.squareup.okhttp3:okhttp:4.10.0")
-    integrationTestImplementation("com.google.code.gson:gson:2.10")
+    testImplementation("io.javalin:javalin:5.1.3")
+    testImplementation("com.squareup.okhttp3:okhttp:4.10.0")
+    testImplementation("com.squareup.okhttp3:okhttp-tls:4.10.0")
+    testImplementation("com.google.code.gson:gson:2.10")
+    testImplementation("org.apache.commons:commons-lang3:3.12.0")
+    testImplementation("org.bouncycastle:bcprov-jdk18on:1.72")
 }
 
 application {
@@ -96,6 +109,16 @@ tasks.shadowJar {
     archiveClassifier.set("")
 }
 
+val acceptanceTest = task<Test>("acceptanceTest") {
+    useJUnitPlatform()
+    description = "Runs acceptance tests."
+    group = "verification"
+
+    testClassesDirs = sourceSets["acceptanceTest"].output.classesDirs
+    classpath = sourceSets["acceptanceTest"].runtimeClasspath
+    outputs.upToDateWhen { false }
+}
+
 val integrationTestInternal = task<Test>("integrationTestInternal") {
     useJUnitPlatform()
 
@@ -104,6 +127,7 @@ val integrationTestInternal = task<Test>("integrationTestInternal") {
     outputs.upToDateWhen { false }
 }
 
+// TODO this doesn't actually work because the containers are shut down as soon as they are started
 val integrationTest = task("integrationTest") {
     description = "Runs integration tests."
     group = "verification"

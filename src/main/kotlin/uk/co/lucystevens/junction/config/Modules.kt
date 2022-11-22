@@ -21,17 +21,17 @@ import uk.co.lucystevens.junction.db.dao.RouteDao
 import uk.co.lucystevens.junction.services.AccountService
 import uk.co.lucystevens.junction.services.DomainService
 import uk.co.lucystevens.junction.services.RouteService
+import uk.co.lucystevens.junction.services.acme.AcmeService
+import uk.co.lucystevens.junction.services.acme.ShredAcmeService
 import uk.co.lucystevens.junction.services.acme.ChallengeService
-import uk.co.lucystevens.junction.services.acme.SessionProvider
 import uk.co.lucystevens.junction.utils.PollingHandler
 import java.time.Clock
-import kotlin.io.path.pathString
 import kotlin.random.Random
 
 object Modules {
 
-    private val utils = module {
-        single { AppRunner(get(), get(), get(), get(), get()) }
+    val utils = module {
+        single { AppRunner(get(), get(), get(), get(), get(), get()) }
         single { Config() }
         single<Clock> { Clock.systemDefaultZone() }
         single<Random> { Random.Default }
@@ -42,7 +42,7 @@ object Modules {
         single { PollingHandler(clock = get()) }
     }
 
-    private val handlers = module {
+    val handlers = module {
         single { JunctionServer(get(), get(), get()) }
 
         // Handlers with their own classes
@@ -80,7 +80,7 @@ object Modules {
             ))
         )
 
-    private val services = module {
+    val services = module {
         // database
         single { setupDatabase(get()) }
 
@@ -97,7 +97,7 @@ object Modules {
         // ssl + certs
         single { CertificateManager(get()) }
         single { ChallengeService(get(), get(), get(), get(), get()) }
-        single { SessionProvider(get())}
+        single<AcmeService> { ShredAcmeService(get()) }
     }
 
     private fun setupDatabase(config: Config): Database {
@@ -107,7 +107,7 @@ object Modules {
         )
     }
 
-    internal val allModules = listOf(
+    val allModules = listOf(
         utils,
         handlers,
         services

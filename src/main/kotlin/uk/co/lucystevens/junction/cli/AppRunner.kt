@@ -4,6 +4,7 @@ import org.ktorm.database.Database
 import uk.co.lucystevens.junction.api.JunctionServer
 import uk.co.lucystevens.junction.api.ssl.CertificateManager
 import uk.co.lucystevens.junction.db.models.createSchema
+import uk.co.lucystevens.junction.services.AccountService
 import uk.co.lucystevens.junction.services.DomainService
 import uk.co.lucystevens.junction.services.RouteService
 import uk.co.lucystevens.junction.utils.logger
@@ -12,6 +13,7 @@ class AppRunner(
     private val database: Database,
     private val routeService: RouteService,
     private val domainService: DomainService,
+    private val accountService: AccountService,
     private val certificateManager: CertificateManager,
     private val junction: JunctionServer
     ) {
@@ -21,6 +23,9 @@ class AppRunner(
     fun run(args: List<String>){
         logger.info("Setting up database")
         database.createSchema()
+
+        logger.info("Initialising account config")
+        accountService.getAccountEmail()
 
         logger.info("Loading routes")
         routeService.loadRoutes()

@@ -34,7 +34,6 @@ fun HttpsRedirectHandler(
     nextHandler: HttpHandler
 ) = dispatch {
     val url = "https://${it.hostName}${it.requestPath}${it.queryString.ifExists { qs -> "?$qs" }}"
-    println("Redirecting to $url")
     val shouldRedirect = domainService.getDomain(it.hostName)
         ?.redirectToHttps ?: false
     if(shouldRedirect) Handlers.redirect(url)

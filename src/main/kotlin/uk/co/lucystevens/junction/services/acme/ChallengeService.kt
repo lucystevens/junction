@@ -1,7 +1,5 @@
 package uk.co.lucystevens.junction.services.acme
 
-import org.shredzone.acme4j.Account
-import org.shredzone.acme4j.AccountBuilder
 import org.shredzone.acme4j.Certificate
 import org.shredzone.acme4j.Order
 import org.shredzone.acme4j.Status
@@ -9,17 +7,10 @@ import org.shredzone.acme4j.challenge.Http01Challenge
 import org.shredzone.acme4j.util.CSRBuilder
 import org.shredzone.acme4j.util.KeyPairUtils
 import uk.co.lucystevens.junction.api.handlers.acme.AcmeChallengeHandler
-import uk.co.lucystevens.junction.api.ssl.CertificateManager
 import uk.co.lucystevens.junction.config.Config
 import uk.co.lucystevens.junction.services.AccountService
-import uk.co.lucystevens.junction.services.DomainService
-import uk.co.lucystevens.junction.utils.CacheExpiry
 import uk.co.lucystevens.junction.utils.PollingHandler
-import uk.co.lucystevens.junction.utils.cached
 import uk.co.lucystevens.junction.utils.logger
-import java.net.URL
-import java.security.KeyPair
-import java.time.temporal.ChronoUnit
 
 
 class ChallengeService(
@@ -27,19 +18,21 @@ class ChallengeService(
     private val pollingHandler: PollingHandler,
     private val accountService: AccountService,
     private val challengeHandler: AcmeChallengeHandler,
-    sessionProvider: SessionProvider,
+    private val acmeService: AcmeService,
     ) {
 
     private val logger = logger<ChallengeService>()
 
-    private val session = sessionProvider.createSession()
+    // login account when first accessed
+    // TODO definitely some wierd circular logic here
+    private val acme by lazy {
+        val accountLocator = getOrCreateAccount()
 
-    private val accountLocator by lazy {
-        getOrCreateAccount()
-    }
-
-    private val account by cached(CacheExpiry(30, ChronoUnit.MINUTES)) {
-        login()
+        logger.info("Logging in to account $accountLocator")
+        val keyPair = accountService.getAccountKeyPair()
+        acmeService.login(accountLocator, keyPair)
+        logger.info("Successfully logged in to account $accountLocator")
+        acmeService
     }
 
     private fun getOrCreateAccount(): String =
@@ -48,11 +41,7 @@ class ChallengeService(
             logger.info("Creating account for email $email")
             val accountKeyPair = accountService.getAccountKeyPair()
 
-            val account = AccountBuilder()
-                .addContact("mailto:$email")
-                .agreeToTermsOfService()
-                .useKeyPair(accountKeyPair)
-                .create(session)
+            val account = acmeService.createAccount(email, accountKeyPair)
 
             account.location.toString().apply {
                 logger.info("Account created successfully. Locator: $this")
@@ -60,15 +49,8 @@ class ChallengeService(
             }
         }
 
-    private fun login(): Account{
-        logger.info("Logging in to account $accountLocator")
-        val keyPair = accountService.getAccountKeyPair()
-        val login = session.login(URL(accountLocator), keyPair)
-        logger.info("Successfully logged in to account ${login.accountLocation}")
-        return login.account
-    }
 
-    fun Order.processChallenges() {
+    private fun Order.processChallenges() {
         // Process auth challenges
         for (auth in authorizations) {
             if (auth.status == Status.PENDING) {
@@ -103,7 +85,7 @@ class ChallengeService(
         logger.info("Order ready in ${timeTakenToReady}ms")
     }
 
-    fun Order.downloadCertificate(): Certificate {
+    private fun Order.downloadCertificate(): Certificate {
         // Download cert
         logger.info("Waiting for certificate order to complete")
         val timeTakenToComplete = pollingHandler.waitForComplete(
@@ -120,9 +102,7 @@ class ChallengeService(
 
     fun renewCert(domain: String, csr: CSRBuilder): Certificate {
         logger.info("Renewing certificate for $domain")
-        val order = account.newOrder()
-            .domains(domain)
-            .create()
+        val order = acme.createOrder(domain)
 
         order.processChallenges()
         order.execute(csr.encoded)
@@ -132,9 +112,7 @@ class ChallengeService(
 
     fun requestCert(domain: String): CertificateResult {
         logger.info("Requesting a new certificate for $domain")
-        val order = account.newOrder()
-            .domains(domain)
-            .create()
+        val order = acme.createOrder(domain)
 
         order.processChallenges()
 

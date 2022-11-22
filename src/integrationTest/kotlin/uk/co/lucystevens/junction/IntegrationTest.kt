@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import uk.co.lucystevens.junction.api.dto.DomainRequestDto
 import uk.co.lucystevens.junction.api.dto.RouteDto
+import uk.co.lucystevens.junction.test.*
 import java.awt.PageAttributes.MediaType
 
 
@@ -39,9 +40,11 @@ class IntegrationTest {
             .get("/test2") { }
             .start(8000)
 
+        val client = OkHttpClient()
+
         // add ssl domain for integrationTest to junction
-        doRequest("http://junction:8000/api/domains"){
-            it.post(readJson("requests/createDomain.json").toRequestBody())
+        client.doRequest("http://junction:8000/api/domains"){
+            it.post(readJson("integrationTest", "requests/createDomain.json").toRequestBody())
                 .addHeader("token", "token")
         }.use {
             assertEquals(204, it.code){
@@ -51,8 +54,8 @@ class IntegrationTest {
         }
 
         // add proxied route for junction to mock server
-        doRequest("http://junction:8000/api/routes"){
-            it.post(readJson("requests/createRoute.json").toRequestBody())
+        client.doRequest("http://junction:8000/api/routes"){
+            it.post(readJson("integrationTest", "requests/createRoute.json").toRequestBody())
                 .addHeader("token", "token")
         }.use {
             assertEquals(204, it.code){
@@ -60,10 +63,10 @@ class IntegrationTest {
                         "Body: ${it.body?.string()}"
             }
         }
-        
+
         var certStatus = "PENDING"
         while (certStatus == "PENDING"){
-            doRequest("http://junction:8000/api/domains"){
+            client.doRequest("http://junction:8000/api/domains"){
                 it.get().addHeader("token", "token")
             }.use {
                 assertEquals(200, it.code)
@@ -78,7 +81,7 @@ class IntegrationTest {
         assertEquals("ENABLED", certStatus)
 
         // test routes and redirects and verify server receipt/response
-        doRequest("https://junction:8443/test"){
+        client.doRequest("https://junction:8443/test"){
             it.get()
         }.use {
             assertEquals(200, it.code){

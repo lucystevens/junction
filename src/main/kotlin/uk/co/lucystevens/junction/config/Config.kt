@@ -4,13 +4,13 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.createDirectories
 
-class Config {
+class Config(private val environment: Map<String, String> = System.getenv()) {
 
     private fun getNullableConfig(key: String): String? =
         getConfig(key, "").ifEmpty { null }
 
     private fun getConfig(key: String, defaultValue: String? = null): String =
-        System.getenv(key)
+        environment[key]
             ?: defaultValue
             ?: throw IllegalStateException("Missing value for non-optional property $key")
 
