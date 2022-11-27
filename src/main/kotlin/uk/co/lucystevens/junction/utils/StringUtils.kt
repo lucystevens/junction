@@ -7,6 +7,8 @@ import java.io.Reader
 import java.io.StringWriter
 import java.io.Writer
 import java.security.KeyPair
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
 
 fun writeToString(fn: (Writer) -> Unit): String =
     StringWriter().use {
@@ -31,3 +33,11 @@ fun KeyPair.writeToString() =
 
 fun String.ifExists(fn: (String) -> String) =
     if(isNotEmpty()) fn(this) else this
+
+fun String.readCert(): List<X509Certificate> {
+    val factory = CertificateFactory.getInstance("X509")
+    return byteInputStream().use { stream ->
+        factory.generateCertificates(stream)
+            .map { it as X509Certificate }
+    }
+}

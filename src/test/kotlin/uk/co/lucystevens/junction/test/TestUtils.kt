@@ -12,6 +12,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import org.junit.jupiter.api.Assertions
 import java.io.FileReader
 import java.sql.ResultSet
 
@@ -47,3 +48,12 @@ fun readJson(testType: String, file: String): JsonElement {
     val reader = JsonReader(FileReader("src/$testType/resources/$file"))
     return gson.fromJson(reader, JsonElement::class.java)
 }
+
+fun Response.bodyAsString() = body?.string()
+
+fun Response.assertStatus(expectedStatus: Int) = Assertions.assertEquals(expectedStatus, code) {
+    "Expected status $expectedStatus, but was $code. Body: ${bodyAsString()}"
+}
+
+fun Response.assertBody(expectedBody: String) =
+    Assertions.assertEquals(expectedBody, bodyAsString())

@@ -1,0 +1,1 @@
+INSERT INTO config (key, value) VALUES ('someKey', 'someValue');

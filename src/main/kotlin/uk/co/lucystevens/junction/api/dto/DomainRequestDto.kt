@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DomainRequestDto(
     val name: String,
-    val redirectToHttps: Boolean?,
-    val enableSsl: Boolean?
+    val redirectToHttps: Boolean? = true,
+    val enableSsl: Boolean? = true
 )

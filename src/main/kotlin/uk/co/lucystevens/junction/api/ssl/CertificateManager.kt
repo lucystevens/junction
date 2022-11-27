@@ -3,6 +3,7 @@ package uk.co.lucystevens.junction.api.ssl
 import uk.co.lucystevens.junction.config.Config
 import uk.co.lucystevens.junction.db.models.DomainData
 import uk.co.lucystevens.junction.utils.logger
+import uk.co.lucystevens.junction.utils.readCert
 import uk.co.lucystevens.junction.utils.readKeyPair
 import java.security.KeyPair
 import java.security.KeyStore
@@ -44,23 +45,16 @@ class CertificateManager(
                     it.certificate!!.readCert()
                 )
             }
+        updateKeyManager()
     }
 
-    private fun String.readCert(): List<X509Certificate> {
-        val factory = CertificateFactory.getInstance("X509")
-        return byteInputStream().use { stream ->
-            factory.generateCertificates(stream)
-                .map { it as X509Certificate }
-                .map {
-                    logger.info("Reading certificate...")
-                    logger.info("Subject DN: ${it.subjectDN.name}")
-                    logger.info("Issuer DN: ${it.issuerDN.name}")
-                    logger.info("Serial No. ${it.serialNumber}")
-                    logger.info("Valid From: ${it.notBefore}")
-                    logger.info("Valid To: ${it.notAfter}")
-                    it
-                }
-        }
+    fun X509Certificate.logInfo(){
+        logger.info("Reading certificate...")
+        logger.info("Subject DN: ${subjectDN.name}")
+        logger.info("Issuer DN: ${issuerDN.name}")
+        logger.info("Serial No. $serialNumber")
+        logger.info("Valid From: $notBefore")
+        logger.info("Valid To: $notAfter")
     }
 
     // THIS WORKS!!!!!!

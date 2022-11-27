@@ -1,0 +1,1 @@
+INSERT INTO domains (name, redirectToHttps, ssl) VALUES ('localhost', false, false);

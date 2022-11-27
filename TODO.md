@@ -1,6 +1,6 @@
 # TODO
  - Regular job to renew expiring certs
- - Integration tests
+ - Remove test certs from prod dockerfile
  - Acceptance tests
  - Unit tests
  - Validate domains on create with SSL
@@ -8,3 +8,5 @@
  - Move handler tree out of Modules
  - Handle invalid challenges better
  - Remove challenges from acme handler once complete
+ - Create local mock acme server for acceptance tests
+ - encrypt data stored in database

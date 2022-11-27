@@ -6,6 +6,7 @@ import io.undertow.server.handlers.PathHandler
 import io.undertow.server.handlers.PredicateHandler
 import uk.co.lucystevens.junction.api.handlers.acme.AcmeChallengeHandler
 import uk.co.lucystevens.junction.api.handlers.api.ApiHandler
+import uk.co.lucystevens.junction.config.Config
 import uk.co.lucystevens.junction.services.DomainService
 import uk.co.lucystevens.junction.utils.asHandler
 import uk.co.lucystevens.junction.utils.dispatch
@@ -30,10 +31,11 @@ fun HttpsEnabledHandler(
 }
 
 fun HttpsRedirectHandler(
+    config: Config,
     domainService: DomainService,
     nextHandler: HttpHandler
 ) = dispatch {
-    val url = "https://${it.hostName}${it.requestPath}${it.queryString.ifExists { qs -> "?$qs" }}"
+    val url = "https://${it.hostName}:${config.getHttpsPort()}${it.requestPath}${it.queryString.ifExists { qs -> "?$qs" }}"
     val shouldRedirect = domainService.getDomain(it.hostName)
         ?.redirectToHttps ?: false
     if(shouldRedirect) Handlers.redirect(url)

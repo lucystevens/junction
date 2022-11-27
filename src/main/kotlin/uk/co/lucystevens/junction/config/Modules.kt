@@ -52,11 +52,12 @@ object Modules {
         single { RoutesApiHandler(get(), get(), get()) }
 
         // Build handler chain using various handlers
-        single { buildHandlerChain(get(), get(), get(), get(), get()) }
+        single { buildHandlerChain(get(), get(), get(), get(), get(), get()) }
     }
 
     // TODO this should be testable somewhere
     fun buildHandlerChain(
+        config: Config,
         junctionRouteHandler: JunctionRouteHandler,
         acmeChallengeHandler: AcmeChallengeHandler,
         domainsApiHandler: DomainsApiHandler,
@@ -66,6 +67,7 @@ object Modules {
             httpHandler = AcmeRoutingHandler(
                 acmeChallengeHandler,
                 HttpsRedirectHandler(
+                    config,
                     domainService,
                     junctionRouteHandler
                 )

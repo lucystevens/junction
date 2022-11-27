@@ -1,0 +1,9 @@
+{
+  "route": {
+    "host": "localhost"
+  },
+  "targets": [{
+    "host": "localhost",
+    "port": 8002
+  }]
+}

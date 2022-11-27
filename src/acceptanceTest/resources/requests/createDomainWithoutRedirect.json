@@ -1,0 +1,5 @@
+{
+  "name": "localhost",
+  "redirectToHttps": false,
+  "enableSsl": true
+}

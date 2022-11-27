@@ -1,50 +1,60 @@
 package uk.co.lucystevens.junction.test
 
-import com.google.gson.JsonObject
 import io.javalin.Javalin
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.tls.HandshakeCertificates
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
+import org.koin.dsl.module
 import org.koin.test.KoinTest
-import org.koin.test.junit5.AutoCloseKoinTest
+import org.ktorm.database.Database
 import uk.co.lucystevens.junction.App
 import uk.co.lucystevens.junction.api.JunctionServer
 import uk.co.lucystevens.junction.api.dto.DomainResponseDto
 import uk.co.lucystevens.junction.api.dto.RouteDto
 import uk.co.lucystevens.junction.api.dto.RouteTarget
+import uk.co.lucystevens.junction.config.Config
 import uk.co.lucystevens.junction.config.Modules
 import uk.co.lucystevens.junction.db.models.AppConfig
 import uk.co.lucystevens.junction.db.models.Route
-import java.net.URI
+import java.nio.file.Paths
 import java.sql.DriverManager
 import java.sql.ResultSet
-import kotlin.test.assertEquals
+import kotlin.io.path.readText
 import kotlin.test.assertTrue
 
 // depends on pebble-novalidate
-open class AcceptanceTest : KoinTest {
+open class AcceptanceTest(
+    val acmeUrl: String = "acme://pebble",
+    val secretKey: String = "secret",
+    val certPassword: String = "password",
+    val adminToken: String = "token",
+    val emailAddress: String = "test@mail.com",
+    val apiPort: Int = 8000,
+    val httpPort: Int = 5002,
+    val httpsPort: Int = 8443,
+    val bindAddress: String = "0.0.0.0",
+    val host: String = "localhost",
+    val dbUrl: String = "jdbc:sqlite:file::memory:?cache=shared",
+    val testServers: Map<String, Int> = mapOf(),
+    val usePebble: Boolean = true
+) : KoinTest {
 
     init {
         System.setProperty("javax.net.ssl.trustStore", "src/acceptanceTest/resources/pebble.jks");
     }
 
-    val dbConn = DriverManager.getConnection(TestModules.dbUrl)
-
-    val defaultHost = "localhost"
+    val dbConn = DriverManager.getConnection(dbUrl)
 
     val clientCertificates = HandshakeCertificates.Builder()
         .addPlatformTrustedCertificates()
-        .addInsecureHost("localhost")
+        .addTrustedCertificate(Certs.pebble)
+        .addTrustedCertificate(Certs.otherRoot)
         .build()
 
     val client = OkHttpClient.Builder()
@@ -52,51 +62,71 @@ open class AcceptanceTest : KoinTest {
         .build()
 
     // storing URLs here as there are multiple
-    val junctionApi = "http://$defaultHost:8000"
-    val junctionHttp = "http://$defaultHost:5002"
-    val junctionHttps = "https://$defaultHost:8443"
+    val junctionApi = "http://$host:$apiPort"
+    val junctionHttp = "http://$host:$httpPort"
+    val junctionHttps = "https://$host:$httpsPort"
 
-    companion object {
-        private val testServer = Javalin.create().get("/test/*") {
-            it.result("Routed to ${it.path()}")
-        }
+    private val javalinServers = testServers.map {
+        Javalin.create().get("/*") { ctx ->
+            ctx.result("[${it.key}] Routed to ${ctx.path()}")
+        }.start(it.value)
+    }
 
-        @JvmStatic @BeforeAll
-        fun startTestServer(){
-            testServer.start(8001)
-        }
+    lateinit var app: App
 
-        @JvmStatic @AfterAll
-        fun stopTestServer(){
-            testServer.stop()
-        }
+    private val testModule = module {
+        single { Config(mapOf(
+            "ACME_URL" to acmeUrl,
+            "SECRET_KEY" to secretKey,
+            "CERT_PASSWORD" to certPassword,
+            "ADMIN_TOKEN" to adminToken,
+            "EMAIL_ADDRESS" to emailAddress,
+            "API_PORT" to apiPort.toString(),
+            "HTTP_PORT" to httpPort.toString(),
+            "HTTPS_PORT" to httpsPort.toString(),
+            "BIND_ADDRESS" to bindAddress
+        )) }
+
+        single { Database.connect(
+            url = dbUrl
+        )}
     }
 
     @BeforeEach
     fun startApp(){
-        startKoin { modules(Modules.allModules + TestModules.test) }
-        App(arrayOf()).run()
+        startKoin { modules(Modules.allModules + testModule) }
+        app = App(arrayOf())
     }
 
     @AfterEach
     fun stopApp(){
         getKoin().get<JunctionServer>().stop()
         stopKoin()
+        javalinServers.forEach { it.stop() }
+        dbConn.close()
     }
-
-    fun Response.bodyAsString() = body?.string()
-
-    fun Response.assertStatus(expectedStatus: Int) = assertEquals(expectedStatus, code) {
-            "Expected status $expectedStatus, but was $code. Body: ${bodyAsString()}"
-        }
-
-    fun Response.assertBody(expectedBody: String) =
-        assertEquals(expectedBody, bodyAsString())
 
     fun createEntity(entity: String, requestFile: String){
         val body = readJson("acceptanceTest", "requests/$requestFile.json")
         client.doRequest("$junctionApi/api/$entity"){
             it.post(body.toRequestBody()).addHeader("token", "token")
+        }.use {
+            it.assertStatus(204)
+        }
+    }
+
+    fun updateEntity(entity: String, requestFile: String){
+        val body = readJson("acceptanceTest", "requests/$requestFile.json")
+        client.doRequest("$junctionApi/api/$entity"){
+            it.put(body.toRequestBody()).addHeader("token", "token")
+        }.use {
+            it.assertStatus(204)
+        }
+    }
+
+    fun deleteEntity(entity: String, body: String){
+        client.doRequest("$junctionApi/api/$entity"){
+            it.delete(body.toJson().toRequestBody()).addHeader("token", "token")
         }.use {
             it.assertStatus(204)
         }
@@ -113,6 +143,14 @@ open class AcceptanceTest : KoinTest {
     fun createRoute(requestFile: String) = createEntity("routes", requestFile)
     fun createDomain(requestFile: String) = createEntity("domains", requestFile)
 
+    fun updateRoute(requestFile: String) = updateEntity("routes", requestFile)
+    fun updateDomain(requestFile: String) = updateEntity("domains", requestFile)
+
+    fun deleteRoute(host: String = this.host, path: String = "/") =
+        deleteEntity("routes", """{"host":"$host","path":"$path"}""")
+    fun deleteDomain(host: String) =
+        deleteEntity("domains", """{"name":"$host"}""")
+
     fun getDomains() = getEntities<DomainResponseDto>("domains")
     fun getRoutes() = getEntities<RouteDto>("routes")
 
@@ -126,10 +164,10 @@ open class AcceptanceTest : KoinTest {
     }
 
     fun assertDatabaseHasRoute(fromPath: String, toPort: Int, scheme: String = "http"){
-        queryOne("SELECT * FROM routes WHERE host='$defaultHost' AND path='$fromPath'"){
+        queryOne("SELECT * FROM routes WHERE host='$host' AND path='$fromPath'"){
             val targets = it.getJson<List<RouteTarget>>("targets")
-            assertEquals(1, targets.size, "Expected 1 target for $defaultHost$fromPath but got 2")
-            assertEquals(RouteTarget(scheme, defaultHost, toPort), targets[0])
+            assertEquals(1, targets.size, "Expected 1 target for $host$fromPath but got 2")
+            assertEquals(RouteTarget(scheme, host, toPort), targets[0])
         }
     }
 
@@ -164,9 +202,9 @@ open class AcceptanceTest : KoinTest {
         dbConn.prepareStatement(sql)
             .executeQuery()
             .let { rs ->
-                assertTrue(rs.next())
+                assertTrue(rs.next(), "Query '$sql' returned no results")
                 validate(rs)
-                assertFalse(rs.next())
+                assertFalse(rs.next(), "Query '$sql' returned more than one result")
             }
 
     fun <T> query(sql: String, parser: (ResultSet) -> T) =
@@ -179,5 +217,11 @@ open class AcceptanceTest : KoinTest {
                 }
                 result
             }
+
+    fun executeSqlFile(file: String) =
+        dbConn.createStatement().executeUpdate(
+            Paths.get("src/acceptanceTest/resources/sql/$file.sql")
+                .readText()
+        )
 
 }
