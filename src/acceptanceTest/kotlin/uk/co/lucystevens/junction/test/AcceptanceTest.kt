@@ -1,7 +1,9 @@
 package uk.co.lucystevens.junction.test
 
 import io.javalin.Javalin
+import io.mockk.mockk
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.Response
 import okhttp3.tls.HandshakeCertificates
 import org.junit.jupiter.api.AfterEach
@@ -22,6 +24,7 @@ import uk.co.lucystevens.junction.config.Config
 import uk.co.lucystevens.junction.config.Modules
 import uk.co.lucystevens.junction.db.models.AppConfig
 import uk.co.lucystevens.junction.db.models.Route
+import uk.co.lucystevens.junction.services.acme.AcmeService
 import java.nio.file.Paths
 import java.sql.DriverManager
 import java.sql.ResultSet
@@ -42,7 +45,7 @@ open class AcceptanceTest(
     val host: String = "localhost",
     val dbUrl: String = "jdbc:sqlite:file::memory:?cache=shared",
     val testServers: Map<String, Int> = mapOf(),
-    val usePebble: Boolean = true
+    val pebble: Pebble = Pebble.STANDARD
 ) : KoinTest {
 
     init {
@@ -106,6 +109,15 @@ open class AcceptanceTest(
         dbConn.close()
     }
 
+    fun readFile(dir: String, name: String): String =
+        Paths.get("src/acceptanceTest/resources/$dir/$name")
+            .readText()
+
+    fun apiRequest(path: String, method: (Request.Builder) -> Unit): Response =
+        client.doRequest("$junctionApi$path"){
+            method(it.addHeader("token", "token"))
+        }
+
     fun createEntity(entity: String, requestFile: String){
         val body = readJson("acceptanceTest", "requests/$requestFile.json")
         client.doRequest("$junctionApi/api/$entity"){
@@ -163,11 +175,16 @@ open class AcceptanceTest(
         assertEquals("ENABLED", certStatus)
     }
 
-    fun assertDatabaseHasRoute(fromPath: String, toPort: Int, scheme: String = "http"){
+    fun assertDatabaseHasRoute(fromPath: String, toPort: Int, scheme: String = "http") =
+        assertDatabaseHasRoutes(fromPath, listOf(toPort), scheme)
+
+    fun assertDatabaseHasRoutes(fromPath: String, toPorts: List<Int>, scheme: String = "http"){
         queryOne("SELECT * FROM routes WHERE host='$host' AND path='$fromPath'"){
             val targets = it.getJson<List<RouteTarget>>("targets")
-            assertEquals(1, targets.size, "Expected 1 target for $host$fromPath but got 2")
-            assertEquals(RouteTarget(scheme, host, toPort), targets[0])
+            assertEquals(toPorts.size, targets.size, "Invalid targets for $host$fromPath.")
+            toPorts.forEachIndexed { index, port ->
+                assertEquals(RouteTarget(scheme, host, port), targets[index])
+            }
         }
     }
 

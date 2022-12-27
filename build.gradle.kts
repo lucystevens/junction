@@ -57,7 +57,7 @@ dependencies {
 
     // undertow + kotlinx
     implementation("io.undertow:undertow-core:2.3.0.Final")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
     // acme4j

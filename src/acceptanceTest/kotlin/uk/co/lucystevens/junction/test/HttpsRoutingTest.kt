@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 
 class HttpsRoutingTest : AcceptanceTest(
     testServers = mapOf("server1" to 8001, "server2" to 8002),
-    usePebble = true
+    pebble = Pebble.NO_VALIDATE
 ) {
 
     @Test

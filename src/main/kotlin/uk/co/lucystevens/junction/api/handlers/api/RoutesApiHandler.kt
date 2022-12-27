@@ -1,6 +1,7 @@
 package uk.co.lucystevens.junction.api.handlers.api
 
 import io.undertow.server.HttpServerExchange
+import io.undertow.util.BadRequestException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import uk.co.lucystevens.junction.api.dto.RouteDto
@@ -22,9 +23,9 @@ class RoutesApiHandler(
 
     override val routes = mapOf(
         get(path) to asHandler { listRoutes(it) },
-        post(path) to asHandler { putRoute(it) },
-        put(path) to asHandler { putRoute(it) },
-        delete(path) to asHandler { removeRoute(it) }
+        post(path) to apiRoute { putRoute(it) },
+        put(path) to apiRoute { putRoute(it) },
+        delete(path) to apiRoute { removeRoute(it) }
     )
 
     fun listRoutes(exchange: HttpServerExchange) {
@@ -37,6 +38,9 @@ class RoutesApiHandler(
     fun putRoute(exchange: HttpServerExchange) {
         exchange.useBody<RouteDto>(json){ dto ->
             // validate targets
+            if(dto.targets.isEmpty()){
+                throw BadRequestException("Proxy route must have at least 1 target")
+            }
             dto.targets.map { it.toURI() }
             // TODO if SSL enabled, validate cert
             routeService.putRoute(dto.route, dto.targets)

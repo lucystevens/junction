@@ -10,3 +10,4 @@
  - Remove challenges from acme handler once complete
  - Create local mock acme server for acceptance tests
  - encrypt data stored in database
+ - metrics and alert reporting
