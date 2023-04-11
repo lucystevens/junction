@@ -8,6 +8,7 @@ class JunctionHostHandler : NameVirtualHostHandler() {
 
     private val pathHandlers = mutableMapOf<String, JunctionPathHandler>()
 
+    // TODO need to load hosts on startup
     override fun addHost(host: String, handler: HttpHandler): NameVirtualHostHandler {
         if(handler is JunctionPathHandler){
             pathHandlers[host] = handler
